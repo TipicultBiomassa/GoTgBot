@@ -6,7 +6,7 @@ import (
 	"path"
 	"strconv"
 
-	"lib/e"
+	"GoTgBot/lib/e"
 )
 
 type Client struct {
