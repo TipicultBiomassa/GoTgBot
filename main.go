@@ -6,8 +6,7 @@ import (
 )
 
 func main() {
-	t := mustToken()
-	// token = flags.Get(token)
+	token = flags.Get(host, mustToken())
 
 	// tgClient = telegram.New(token);
 
@@ -17,6 +16,10 @@ func main() {
 
 	//consumer.Start(fetcher, processor)
 }
+
+const (
+	host = "api.telegram.org"
+)
 
 func mustToken() string {
 	token := flag.String(
