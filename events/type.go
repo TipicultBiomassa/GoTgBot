@@ -19,3 +19,7 @@ type Event struct {
 	Type Type
 	Text string
 }
+
+func (p *Processor) Fetch() {
+
+}
