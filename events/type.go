@@ -18,6 +18,7 @@ const (
 type Event struct {
 	Type Type
 	Text string
+	Meta interface{}
 }
 
 func (p *Processor) Fetch() {

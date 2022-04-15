@@ -5,6 +5,7 @@ import (
 	"GoTgBot/events"
 	"GoTgBot/lib/e"
 	"GoTgBot/storage"
+	"errors"
 )
 
 type Processor struct {
@@ -12,6 +13,15 @@ type Processor struct {
 	offset  int
 	storage storage.Storage
 }
+type Meta struct {
+	ChatID   int
+	Username string
+}
+
+var (
+	ErrUnknownMetaType  = errors.New("unknown meta type")
+	ErrUnknownEventType = errors.New("unknown event type")
+)
 
 func New(client *telegram.Client, storage storage.Storage) *Processor {
 	return &Processor{
@@ -19,10 +29,13 @@ func New(client *telegram.Client, storage storage.Storage) *Processor {
 		storage: storage,
 	}
 }
-func (p *Processor) Fetch() ([]events.Event, error) {
+func (p *Processor) Fetch(limit int) ([]events.Event, error) {
 	update, err := p.tg.Updates(p.offset, limit)
 	if err != nil {
 		return nil, e.WrapIfNil("can't get events", err)
+	}
+	if len(update) == 0 {
+		return nil, nil
 	}
 	res := make([]events.Event, 0, len(update))
 
@@ -30,12 +43,48 @@ func (p *Processor) Fetch() ([]events.Event, error) {
 		res = append(res, event(u))
 	}
 
+	p.offset = update[len(update)-1].ID + 1
+
+	return res, nil
+}
+
+func (p Processor) Process(event events.Event) error {
+	switch events.Type {
+	case events.Message:
+		p.processMessage(event)
+	default:
+		return e.Wrap("can't process message", ErrUnknownEventType)
+
+	}
+}
+
+func (p *Processor) processMessage(event events.Event) {
+	meta, err := meta(event)
+
+}
+
+func meta(event2 events.Event) (Meeta, error) {
+	res, ok := event.Meta.(Meta)
+	if !ok {
+		return meta{}, e.Wrap("Can't get meta", ErrUnknownMetaType)
+	}
+
 }
 func event(upd telegram.Update) events.Event {
+	updType := fetchType(upd)
 	res := events.Event{
-		Type: fetchType(upd),
+		Type: updType,
 		Text: fetchText(upd),
 	}
+	if updType == events.Message {
+		res.Meta = Meta{
+			ChatID:   upd.Message.Chat.ID,
+			Username: upd.Message.From.Username,
+		}
+	}
+
+	return res
+	// chatID username
 }
 func fetchType(upd telegram.Update) events.Type {
 	if upd.Message == nil {
