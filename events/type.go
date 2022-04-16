@@ -20,7 +20,3 @@ type Event struct {
 	Text string
 	Meta interface{}
 }
-
-func (p *Processor) Fetch() {
-
-}
